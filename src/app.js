@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const port = process.env.PORT || 3000;
 
 //Database
-mongoose.connect(`${config.DB_URL}`, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true}, () => {
+mongoose.connect(`${config.DB_URL || process.env.DB_URL}`, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true}, () => {
  console.log("connected")
 })
 
