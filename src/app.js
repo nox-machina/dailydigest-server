@@ -9,4 +9,8 @@ mongoose.connect(`${config.DB_URL}`, {useNewUrlParser: true, useUnifiedTopology:
  console.log("connected")
 })
 
+app.get("/", (req, res) => {
+    res.send({msg: "Hello world"})
+})
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
