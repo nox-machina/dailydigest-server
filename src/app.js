@@ -1,11 +1,11 @@
-const express = require('express')
+const express = require('express');
+require("dotenv").config();
 const app = express();
-const config = require("./config/keys");
 const mongoose = require("mongoose");
 const port = process.env.PORT || 3000;
 
 //Database
-mongoose.connect(`${config.DB_URL || process.env.DB_URL}`, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true}, () => {
+mongoose.connect(`${process.env.DB_URL}`, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true}, () => {
  console.log("connected")
 })
 
