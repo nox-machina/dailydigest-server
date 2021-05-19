@@ -13,18 +13,24 @@ passport.use(
       callbackURL: "/google/redirect",
     },
     async (actoken, rftoken, profile, done) => {
-    //   console.log({profile: profile})
-    //   console.log("Success");
 
       //----Find or create user after check----//
-      const doesGoogleUserExist = await User.findOne({ googleId: profile.id });
+      const existingGoogleUser = await User.findOne({ googleId: profile.id });
 
       let user;
 
-      if(!doesGoogleUserExist) {
-         user = {profile: profile}
+      if(!existingGoogleUser) {
+         user = new User ({
+           username: profile.displayName.replace(/\s/g, ""),
+           email: profile._json.email,
+           forename: profile.name.givenName,
+           surname: profile.name.familyName,
+           googleId: profile.id,
+         });
+      } else {
+          user = existingGoogleUser;
       }
-      done(null, user);
+      await user.save().then(user => done(null, user))
     }
   )
 );

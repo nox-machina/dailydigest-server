@@ -8,11 +8,13 @@ const userSchema = new mongoose.Schema({
     },
     forename: {
         type: String,
-        required: false
+        required: false,
+        default: null,
     },
-    surename: {
+    surname: {
         type: String,
-        required: false
+        required: false,
+        default: null
     },
     email: {
         type: String,
@@ -24,7 +26,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        default: null,
         min: 6
     }
 })

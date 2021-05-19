@@ -4,7 +4,7 @@
 // const jwt = require("jsonwebtoken");
 // // const uid = require("uuid/dist/v4");
 
-// router.post("/register", (req, res) => {
+// router.post("/auth/local", (req, res) => {
     
 //     //validation
 

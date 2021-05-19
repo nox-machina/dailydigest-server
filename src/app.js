@@ -19,4 +19,10 @@ const auth = require('./routes/auth');
 app.use(cookieParser());
 app.use('/', auth);
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => {
+  console.log(
+    `Example app listening on port ${port}!`
+  );
+
+//   console.log(`${require("crypto").randomBytes(64).toString("hex")}`);
+});
