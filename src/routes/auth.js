@@ -2,8 +2,12 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const verify = require("../middleware/verify");
+
+const User = require("../models/User");
+const { json } = require("body-parser");
 
 router.get(
   "/auth/google",
@@ -33,14 +37,83 @@ router.get(
   }
 );
 
+router.post("/signup/local", async (req, res) => {
 
+    if (!req.body.email || !req.body.username || !req.body.password) return res.status(400).send({message: "Invalid Request."})
 
+    const existingAccount = await User.findOne({ email: req.body.email });
+    if (existingAccount) return res.status(409).send({ message: "Email already in use." });
 
+    let user;
 
+    const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash(req.body.password, salt);
 
+    user = new User({
+    username: req.body.username,
+    email: req.body.email,
+    password: password,
+    });
 
+    await user.save();
 
+    //----JWT----//
+    const payload = {
+    user: {
+        id: user._id,
+    },
+    };
 
+    jwt.sign(
+    payload,
+    process.env.TOKEN_SECRET,
+    { expiresIn: "15 seconds" },
+    (err, token) => {
+        console.log(`Generating Token... ${token}`);
+        if (!err) {
+        res.cookie("token", token);
+        res.send({message: "User created successfully."});
+        }
+    }
+    );
+})
+
+router.post('/auth/local', async (req, res) => {
+    // console.log(Object.keys(req.body).length)
+    if (Object.keys(req.body).length > 2) return res.status(400).send({message: "Too Many Positional Arguments."})
+      if (req.body.password && req.body.email) {
+        const user = await User.findOne({ email: req.body.email });
+
+        if (!user) return res.status(404).send({ message: "User not found." });
+
+        const isAuth = await bcrypt.compare(req.body.password, user.password);
+
+        if (!isAuth)
+          return res.status(400).send({ message: "Invalid Credentials." });
+
+        //----JWT----//
+        const payload = {
+          user: {
+            id: user._id,
+          },
+        };
+
+        jwt.sign(
+          payload,
+          process.env.TOKEN_SECRET,
+          { expiresIn: "15 seconds" },
+          (err, token) => {
+            console.log(`Generating Token... ${token}`);
+            if (!err) {
+              res.cookie("token", token);
+              res.send({ message: "New Token Assigned" });
+            }
+          }
+        );
+      } else {
+        res.status(400).send({ message: "Invalid Request." });
+      }
+})
 
 //----Temp Redirect Route----//
 router.get("/", verify, async (req, res) => {
@@ -53,16 +126,5 @@ router.get("/token/test", verify, async (req, res) => {
     res.send({message: "Verification Successful."})
 })
 
-//--done--//
-//auth using google oauth
-//if gUser exists return gUser else create new user
-//redirect route >> generate JWT and set-cookie
-
-//custom auth
-//signup/login using email password
-//jwt is generate and cookie set
-
-//--setup done--//
-//jwt verification middleware for all following requests
 
 module.exports = router;
