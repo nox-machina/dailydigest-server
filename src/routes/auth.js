@@ -4,10 +4,11 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-const verify = require("../middleware/verify");
-
 const User = require("../models/User");
 const { json } = require("body-parser");
+
+const verify = require("../middleware/verify");
+const { jwtsign } = require("../functions/jwtsign");
 
 router.get(
   "/auth/google",
@@ -20,20 +21,12 @@ router.get(
   async (req, res) => {
     console.log("Logging In...", {user: req.user});
 
-    //----JWT----//
-    const payload = {
-        user: {
-            id: req.user._id
-        }
-    }
-    
-    jwt.sign(payload, process.env.TOKEN_SECRET, {expiresIn: "60 seconds"}, (err, token) => {
-        console.log(`Generating Token... ${token}`)
-        if (!err) {
-            res.cookie('token', token);
-            res.redirect("/");
-        }
-    })
+    //----jwt sign----//
+    const token = jwtsign(user._id);
+
+    console.log(`Generating Token...`);
+    res.cookie("token", token);
+    res.redirect("/");
   }
 );
 
@@ -57,25 +50,12 @@ router.post("/signup/local", async (req, res) => {
 
     await user.save();
 
-    //----JWT----//
-    const payload = {
-    user: {
-        id: user._id,
-    },
-    };
+    //----jwt sign----//
+    const token = jwtsign(user._id);
 
-    jwt.sign(
-    payload,
-    process.env.TOKEN_SECRET,
-    { expiresIn: "15 seconds" },
-    (err, token) => {
-        console.log(`Generating Token... ${token}`);
-        if (!err) {
-        res.cookie("token", token);
-        res.send({message: "User created successfully."});
-        }
-    }
-    );
+    console.log(`Generating Token...`);
+    res.cookie("token", token);
+    res.send({message: "User Created Successfully"});
 })
 
 router.post('/auth/local', async (req, res) => {
@@ -91,25 +71,14 @@ router.post('/auth/local', async (req, res) => {
         if (!isAuth)
           return res.status(400).send({ message: "Invalid Credentials." });
 
-        //----JWT----//
-        const payload = {
-          user: {
-            id: user._id,
-          },
-        };
 
-        jwt.sign(
-          payload,
-          process.env.TOKEN_SECRET,
-          { expiresIn: "15 seconds" },
-          (err, token) => {
-            console.log(`Generating Token... ${token}`);
-            if (!err) {
-              res.cookie("token", token);
-              res.send({ message: "New Token Assigned" });
-            }
-          }
-        );
+        //----jwt sign----//
+        const token = jwtsign(user._id);
+
+        console.log(`Generating Token...`);
+        res.cookie("token", token);
+        res.send({message: "Token Generated Successfully"});
+
       } else {
         res.status(400).send({ message: "Invalid Request." });
       }
